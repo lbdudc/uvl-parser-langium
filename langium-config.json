@@ -1,0 +1,15 @@
+{
+    "projectName": "Uvlparser",
+    "languages": [{
+        "id": "uvlparser",
+        "grammar": "src/language/uvlparser.langium",
+        "fileExtensions": [".uvl"],
+        "textMate": {
+            "out": "syntaxes/uvlparser.tmLanguage.json"
+        },
+        "monarch": {
+            "out": "src/syntaxes/uvlparser.monarch.ts"
+        }
+    }],
+    "out": "src/language/generated"
+}
