@@ -1,5 +1,5 @@
 import type { ValidationAcceptor, ValidationChecks } from 'langium';
-import type { UvlparserAstType, Person } from './generated/ast.js';
+import type { UvlparserAstType, FeatureModel } from './generated/ast.js';
 import type { UvlparserServices } from './uvlparser-module.js';
 
 /**
@@ -9,7 +9,7 @@ export function registerValidationChecks(services: UvlparserServices) {
     const registry = services.validation.ValidationRegistry;
     const validator = services.validation.UvlparserValidator;
     const checks: ValidationChecks<UvlparserAstType> = {
-        Person: validator.checkPersonStartsWithCapital
+        FeatureModel: validator.checkFeatureModelValidity
     };
     registry.register(checks, validator);
 }
@@ -19,13 +19,10 @@ export function registerValidationChecks(services: UvlparserServices) {
  */
 export class UvlparserValidator {
 
-    checkPersonStartsWithCapital(person: Person, accept: ValidationAcceptor): void {
-        if (person.name) {
-            const firstChar = person.name.substring(0, 1);
-            if (firstChar.toUpperCase() !== firstChar) {
-                accept('warning', 'Person name should start with a capital.', { node: person, property: 'name' });
-            }
-        }
+    checkFeatureModelValidity(featureModel: FeatureModel, accept: ValidationAcceptor): void {
+      /*  if (!featureModel.namespace) {
+            accept('error', 'Feature model must include at least one namespace statement.', { node: featureModel, property: 'namespace' });
+        }*/
     }
 
 }
