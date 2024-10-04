@@ -3,18 +3,15 @@ import { EmptyFileSystem, type LangiumDocument } from "langium";
 import { expandToString as s } from "langium/generate";
 import { clearDocuments, parseHelper } from "langium/test";
 import { createUvlparserServices } from "../../src/language/uvlparser-module.js";
-import { Model, isModel } from "../../src/language/generated/ast.js";
+import { FeatureModel, isFeatureModel } from "../../src/language/generated/ast.js";
 
 let services: ReturnType<typeof createUvlparserServices>;
-let parse:    ReturnType<typeof parseHelper<Model>>;
-let document: LangiumDocument<Model> | undefined;
+let parse:    ReturnType<typeof parseHelper<FeatureModel>>;
+let document: LangiumDocument<FeatureModel> | undefined;
 
 beforeAll(async () => {
     services = createUvlparserServices(EmptyFileSystem);
-    parse = parseHelper<Model>(services.Uvlparser);
-
-    // activate the following if your linking test requires elements from a built-in library, for example
-    // await services.shared.workspace.WorkspaceManager.initializeWorkspace([]);
+    parse = parseHelper<FeatureModel>(services.Uvlparser);
 });
 
 afterEach(async () => {
@@ -23,21 +20,27 @@ afterEach(async () => {
 
 describe('Linking tests', () => {
 
-    test('linking of greetings', async () => {
+    test('linking of feature model', async () => {
         document = await parse(`
-            person Langium
-            Hello Langium!
+            namespace MyNamespace;
+
+            include MyLanguage;
+
+            features MyFeature {
+                String myFeature;
+                cardinality [1..*] {
+                    or myFeature;
+                }
+            }
+
+            constraints [
+                myFeature == 'example';
+            ]
         `);
 
         expect(
-            // here we first check for validity of the parsed document object by means of the reusable function
-            //  'checkDocumentValid()' to sort out (critical) typos first,
-            // and then evaluate the cross references we're interested in by checking
-            //  the referenced AST element as well as for a potential error message;
-            checkDocumentValid(document)
-                || document.parseResult.value.greetings.map(g => g.person.ref?.name || g.person.error?.message).join('\n')
-        ).toBe(s`
-            Langium
+            checkDocumentValid(document)).toBe(s`
+            MyFeature
         `);
     });
 });
@@ -48,6 +51,6 @@ function checkDocumentValid(document: LangiumDocument): string | undefined {
           ${document.parseResult.parserErrors.map(e => e.message).join('\n  ')}
     `
         || document.parseResult.value === undefined && `ParseResult is 'undefined'.`
-        || !isModel(document.parseResult.value) && `Root AST object is a ${document.parseResult.value.$type}, expected a '${Model}'.`
+        || !isFeatureModel(document.parseResult.value) && `Root AST object is a ${document.parseResult.value.$type}, expected a 'FeatureModel'.`
         || undefined;
 }
