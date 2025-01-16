@@ -20,9 +20,6 @@ export function registerValidationChecks(services: UvlparserServices) {
 export class UvlparserValidator {
 
     checkFeatureModelValidity(featureModel: FeatureModel, accept: ValidationAcceptor): void {
-      /*  if (!featureModel.namespace) {
-            accept('error', 'Feature model must include at least one namespace statement.', { node: featureModel, property: 'namespace' });
-        }*/
     }
 
 }
