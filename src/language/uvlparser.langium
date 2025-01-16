@@ -200,3 +200,7 @@ terminal OPEN_PAREN: '(';
 terminal CLOSE_PAREN: ')';
 terminal OPEN_BRACK: '[';
 terminal CLOSE_BRACK: ']';
+
+hidden terminal SPACES: /\s+/;
+hidden terminal SL_COMMENT: /\/\/[^\n\r]*/;
+hidden terminal ML_COMMENT: /\/\*[\s\S]*?\*\//;
