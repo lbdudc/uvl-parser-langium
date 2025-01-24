@@ -137,7 +137,7 @@ NumericAggregateFunction:
   ;
 
 Reference:
-    (id+=Id ('.' id+=Id)*)?;
+    id+=Id ('.' id+=Id)*;
 
 Id returns string: ID_STRICT | ID_NOT_STRICT;
 
@@ -184,14 +184,13 @@ terminal BOOLEAN_T returns boolean: /true|false/;
 terminal COMMA: /,/;
 
 terminal DEDENT: ':synthetic-dedent:';
-terminal INDENT: ':synthetic-indent::';
-hidden terminal WS: /[ \t]+/;
+terminal INDENT: ':synthetic-indent:';
+hidden terminal WS: /[ ]+/;
 
-terminal ID_NOT_STRICT: '"' /[^"\r\n]+/ '"';
-terminal ID_STRICT: /[a-zA-Z]([a-zA-Z0-9_] | '#' | '§' | '%' | '?' | '\\' | '\'' | 'ä' | 'ü' | 'ö' | 'ß' | ';')*/;
+terminal ID_NOT_STRICT: '"' /[^"\r\n.]+/ '"';
+terminal ID_STRICT: /[a-zA-Z]([a-zA-Z0-9_]|[#§%?\\'äüöß;])*/;
 
 terminal STRING: /"(\\.|[^"\\])*"|'(\\.|[^'\\])*'/;
-
 
 terminal NEWLINE: /[\r?\n]+/;
 terminal OPEN_BRACE: '{';
@@ -201,6 +200,5 @@ terminal CLOSE_PAREN: ')';
 terminal OPEN_BRACK: '[';
 terminal CLOSE_BRACK: ']';
 
-hidden terminal SPACES: /\s+/;
 hidden terminal SL_COMMENT: /\/\/[^\n\r]*/;
 hidden terminal ML_COMMENT: /\/\*[\s\S]*?\*\//;
