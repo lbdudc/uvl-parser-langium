@@ -30,7 +30,7 @@ ImportLine:
 
 Features:
     'features' NEWLINE 
-    INDENT feature=Feature DEDENT;
+    INDENT features+=Feature* DEDENT;
 
 Group:
     (ORGROUP GroupSpec)
@@ -45,7 +45,7 @@ GroupSpec:
     NEWLINE INDENT feature+=Feature+ DEDENT;
 
 Feature:
-    FeatureType? Reference FeatureCardinality? Attributes? NEWLINE (INDENT group+=Group+ DEDENT)?;
+    FeatureType? reference=Reference FeatureCardinality? Attributes? NEWLINE (INDENT group+=Group+ DEDENT)?;
 
 FeatureCardinality:
     'cardinality' cardinality=CARDINALITY;
@@ -199,6 +199,3 @@ terminal OPEN_PAREN: '(';
 terminal CLOSE_PAREN: ')';
 terminal OPEN_BRACK: '[';
 terminal CLOSE_BRACK: ']';
-
-hidden terminal SL_COMMENT: /\/\/[^\n\r]*/;
-hidden terminal ML_COMMENT: /\/\*[\s\S]*?\*\//;
