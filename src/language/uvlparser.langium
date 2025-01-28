@@ -45,7 +45,7 @@ GroupSpec:
     NEWLINE INDENT feature+=Feature+ DEDENT;
 
 Feature:
-    FeatureType? reference=Reference FeatureCardinality? Attributes? NEWLINE (INDENT group+=Group+ DEDENT)?;
+    FeatureType? reference=Reference FeatureCardinality? attributes+=Attributes? NEWLINE (INDENT group+=Group+ DEDENT)?;
 
 FeatureCardinality:
     'cardinality' cardinality=CARDINALITY;
@@ -58,7 +58,7 @@ Attribute:
   | ConstraintAttribute;
 
 ValueAttribute:
-    Key Value?;
+    id=Key value+=Value?;
 
 Key:
     id = Id;

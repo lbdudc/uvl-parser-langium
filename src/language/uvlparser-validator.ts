@@ -1,5 +1,5 @@
 import type { ValidationAcceptor, ValidationChecks } from 'langium';
-import type { UvlparserAstType, FeatureModel, Feature } from './generated/ast.js';
+import type { UvlparserAstType, FeatureModel, Feature, Attribute, ValueAttribute, } from './generated/ast.js';
 import type { UvlparserServices } from './uvlparser-module.js';
 
 /**
@@ -20,10 +20,10 @@ export function registerValidationChecks(services: UvlparserServices) {
 export class UvlparserValidator {
 
     checkFeatureModelValidity(featureModel: FeatureModel, accept: ValidationAcceptor): void {
-        this.checkForFeatureDuplication(featureModel, accept);
+        this.checkForFeatureAndAttributeDuplication(featureModel, accept);
     };
 
-    checkForFeatureDuplication(featureModel: FeatureModel, accept: ValidationAcceptor): void {
+    checkForFeatureAndAttributeDuplication(featureModel: FeatureModel, accept: ValidationAcceptor): void {
         const seenIds = new Set<string>();
 
         const traverseFeature = (feature: Feature): void => {
@@ -40,6 +40,23 @@ export class UvlparserValidator {
                 }
             }
 
+            const seenAttributeKeys = new Set<string>();
+            feature.attributes?.forEach((attribute) => {
+                attribute.attribute.forEach(el => {
+                if (this.isValueAttribute(el)) {
+                    const key = el.id?.id.toString();
+                    if (key) {
+                        if (seenAttributeKeys.has(key)) {
+                            accept('error', `Duplicated attribute key: '${key}'`, {
+                                node: el,
+                            });
+                        } else {
+                            seenAttributeKeys.add(key);
+                        }
+                    }
+                }})
+            });
+
             feature.group?.forEach((group) => {
                 group.feature?.forEach(traverseFeature);
             });
@@ -47,4 +64,9 @@ export class UvlparserValidator {
 
         featureModel.features?.features.forEach(traverseFeature);
     }
+
+    isValueAttribute(attribute: Attribute): attribute is ValueAttribute {
+        return 'id' in attribute && (attribute as ValueAttribute).id !== undefined;
+    }
+    
 }
