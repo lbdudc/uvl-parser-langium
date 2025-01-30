@@ -1,4 +1,4 @@
-import { type Module, inject } from 'langium';
+import { type Module, inject, IndentationAwareLexer, IndentationAwareTokenBuilder } from 'langium';
 import { createDefaultModule, createDefaultSharedModule, type DefaultSharedModuleContext, type LangiumServices, type LangiumSharedServices, type PartialLangiumServices } from 'langium/lsp';
 import { UvlparserGeneratedModule, UvlparserGeneratedSharedModule } from './generated/module.js';
 import { UvlparserValidator, registerValidationChecks } from './uvlparser-validator.js';
@@ -26,6 +26,10 @@ export type UvlparserServices = LangiumServices & UvlparserAddedServices
 export const UvlparserModule: Module<UvlparserServices, PartialLangiumServices & UvlparserAddedServices> = {
     validation: {
         UvlparserValidator: () => new UvlparserValidator()
+    },
+    parser:{
+        TokenBuilder: () => new IndentationAwareTokenBuilder(),
+        Lexer: (services) => new IndentationAwareLexer(services),
     }
 };
 

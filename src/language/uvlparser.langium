@@ -1,153 +1,201 @@
 grammar Uvlparser
 
-entry FeatureModel:
-    namespace=Namespace? includes=Includes? imports=Imports? features=Features? constraints=Constraints? EOF;
+entry FeatureModel: 
+    namespace=Namespace? 
+    NEWLINE? 
+    includes=Includes? 
+    NEWLINE? 
+    imports=Imports? 
+    NEWLINE? 
+    features=Features? 
+    NEWLINE? 
+    constraints=Constraints?;
 
 Namespace:
     'namespace' reference=Reference;
 
 Includes:
-    'include' includeLine+=IncludeLine*;
+    'include' NEWLINE 
+    INDENT includeLines+=IncludeLine* DEDENT;
 
 IncludeLine:
-    languageLevel=LanguageLevel;
+    languageLevel=LanguageLevel NEWLINE;
 
 Imports:
-    'imports' importLine+=ImportLine*;
+    'imports' NEWLINE 
+    INDENT importLines+=ImportLine* DEDENT;
 
 ImportLine:
-    ns=Reference ('as' alias=Reference)?;
+    ns=Reference ('as' alias=Reference)? NEWLINE;
 
 Features:
-    'features' feature+=Feature+;
+    'features' NEWLINE 
+    INDENT features+=Feature* DEDENT;
+
+Group:
+    (ORGROUP GroupSpec)
+  | (ALTERNATIVE GroupSpec)
+  | (OPTIONAL GroupSpec)
+  | (MANDATORY GroupSpec)
+  | (CARDINALITY GroupSpec)
+  ;
+
+
+GroupSpec:
+    NEWLINE INDENT feature+=Feature+ DEDENT;
 
 Feature:
-    featureType=FeatureType? reference=Reference featureCardinality=FeatureCardinality? attributes=Attributes? group=Group?;
-
-FeatureType returns string:
-    'String' | 'Integer' | 'Boolean' | 'Real';
+    FeatureType? reference=Reference FeatureCardinality? attributes+=Attributes? NEWLINE (INDENT group+=Group+ DEDENT)?;
 
 FeatureCardinality:
     'cardinality' cardinality=CARDINALITY;
 
 Attributes:
-    '{' (attribute+=Attribute (',' attribute+=Attribute)*)? '}';
+    OPEN_BRACE (attribute+=Attribute (COMMA attribute+=Attribute)*)? CLOSE_BRACE;
 
 Attribute:
-    ValueAttribute | ConstraintAttribute;
+    ValueAttribute
+  | ConstraintAttribute;
 
 ValueAttribute:
-    key=ID value=Value?;
+    id=Key value+=Value?;
 
-ConstraintAttribute:
-    'constraint' constraint=Constraint | 'constraints' constraintList=ConstraintList;
-
-ConstraintList:
-    '[' (constraint+=Constraint (',' constraint+=Constraint)*)? ']';
-
-Group:
-    OrGroup | AlternativeGroup | OptionalGroup | MandatoryGroup | CardinalityGroup;
-
-OrGroup:
-    'or' groupSpec=GroupSpec;
-
-AlternativeGroup:
-    'alternative' groupSpec=GroupSpec;
-
-OptionalGroup:
-    'optional' groupSpec=GroupSpec;
-
-MandatoryGroup:
-    'mandatory' groupSpec=GroupSpec;
-
-CardinalityGroup:
-    'cardinality' CARDINALITY groupSpec=GroupSpec;
-
-GroupSpec:
-    feature+=Feature+;
-
-Constraints:
-    'constraints' constraintLine+=ConstraintLine*;
-
-ConstraintLine:
-    constraint=Constraint;
-
-Constraint:
-    PrimaryConstraint (BinaryConstraintOp right=PrimaryConstraint)*;
-
-PrimaryConstraint:
-    EquationConstraint | ReferenceConstraint | ParenthesisConstraint | NotConstraint;
-
-BinaryConstraintOp returns string:
-    '&' | '|' | '=>' | '<=>';
-
-EquationConstraint:
-    equation=Equation;
-
-ReferenceConstraint:
-    reference=Reference;
-
-ParenthesisConstraint:
-    '(' constraint=Constraint ')';
-
-NotConstraint:
-    '!' constraint=Constraint;
-
-Equation:
-    left=Expression operator=EquationOperator right=Expression;
-
-EquationOperator returns string:
-    '==' | '!=' | '<' | '<=' | '>' | '>=';
-
-Expression:
-    AddSubExpression;
-
-AddSubExpression:
-    MulDivExpression ((ADD | SUB) right=MulDivExpression)*;
-
-MulDivExpression:
-    PrimaryExpression ((MUL | DIV) right=PrimaryExpression)*;
-
-terminal ADD: '+';
-terminal SUB: '-';
-terminal MUL: '*';
-terminal DIV: '/';
-
-PrimaryExpression:
-    FLOAT | INTEGER | STRING | BOOLEAN | Reference | '(' expression=Expression ')';
+Key:
+    id = Id;
 
 Value:
-    BOOLEAN | FLOAT | INTEGER | STRING | Attributes | Vector | 'true' | 'false';
+    BOOLEAN_T | FLOAT | INTEGER | STRING | Attributes | Vector;
 
 Vector:
-    '[' (values+=Value (',' values+=Value)*)? ']';
+    OPEN_BRACK (val1+=Value (COMMA val2+=Value)*)? CLOSE_BRACK;
+
+ConstraintAttribute:
+    'constraint' Constraint
+  | 'constraints' ConstraintList
+  ;
+
+ConstraintList:
+    OPEN_BRACK (cons1+=Constraint (COMMA cons2+=Constraint)*)? CLOSE_BRACK;
+
+Constraints:
+    'constraints' NEWLINE INDENT constraintLine+=ConstraintLine* DEDENT;
+
+ConstraintLine:
+    Constraint NEWLINE;
+
+
+Constraint:
+    primCons1+=PrimaryConstraint (BinaryConstraintOperator primCons2+=PrimaryConstraint)*;
+
+PrimaryConstraint:
+    Equation
+    | Reference
+    | OPEN_PAREN Constraint CLOSE_PAREN
+    | NOT PrimaryConstraint;
+
+BinaryConstraintOperator returns string:
+    AND | OR | IMPLICATION | EQUIVALENCE;
+
+Equation
+    : Expression EQUAL Expression
+    | Expression LOWER Expression
+    | Expression GREATER Expression
+    | Expression LOWER_EQUALS Expression
+    | Expression GREATER_EQUALS Expression
+    | Expression NOT_EQUALS Expression
+    ;
+
+Expression:
+    term1+=Term ((ADD | SUB) term2+=Term)*;
+
+Term:
+    f1+=Factor ((MUL | DIV) f2+=Factor)*;
+
+Factor:
+    FLOAT
+    | INTEGER
+    | STRING
+    | AggregateFunction
+    | Reference
+    | OPEN_PAREN Expression CLOSE_PAREN;
+
+
+AggregateFunction
+    : 'sum' OPEN_PAREN (Reference COMMA)? Reference CLOSE_PAREN
+    | 'avg' OPEN_PAREN (Reference COMMA)? Reference CLOSE_PAREN
+    | StringAggregateFunction
+    | NumericAggregateFunction
+    ;
+
+StringAggregateFunction:
+    'len' OPEN_PAREN Reference CLOSE_PAREN
+  ;
+
+NumericAggregateFunction:
+    'floor' OPEN_PAREN Reference CLOSE_PAREN
+  | 'ceil' OPEN_PAREN Reference CLOSE_PAREN
+  ;
 
 Reference:
-    id=ID ('.' id=ID)* | STRING;
+    id+=Id ('.' id+=Id)*;
+
+Id returns string: ID_STRICT | ID_NOT_STRICT;
+
+FeatureType returns string:
+    'String' | 'Integer' | 'BOOLEAN' | 'Real';
 
 LanguageLevel:
-    majorLevel=MajorLevel ('.' minorLevel=MinorLevel)?;
+    majorLevel=MajorLevel ('.' (minorLevel=MinorLevel | '*'))?;
 
-MajorLevel returns string:
-    'Boolean' | 'Arithmetic' | 'Type';
+MajorLevel returns string: 
+    'BOOLEAN' | 'Arithmetic' | 'Type';
 
-MinorLevel returns string:
+MinorLevel returns string: 
     'group-cardinality' | 'feature-cardinality' | 'aggregate-function' | 'string-constraints';
 
-terminal ID: /[_a-zA-Z][\w_]*/;
-terminal STRING: /"[^"]*"/; 
-terminal CARDINALITY: /\[\d+(\.\.\d+|\.\.\*)?\]/;
-terminal FLOAT: /-?\d*\.\d+/;
-terminal INTEGER: /-?\d+/;
-terminal BOOLEAN: /true|false/;
+ORGROUP returns string: 'or';
+ALTERNATIVE returns string: 'alternative';
+OPTIONAL returns string: 'optional';
+MANDATORY returns string: 'mandatory';
+CARDINALITY returns string: OPEN_BRACK INTEGER ('..' (INTEGER | '*'))? CLOSE_BRACK;
+
+NOT returns string: '!';
+AND returns string: '&';
+OR returns string: '|';
+EQUIVALENCE returns string: '<=>';
+IMPLICATION returns string: '=>';
+
+EQUAL returns string: '==';
+LOWER returns string: '<';
+LOWER_EQUALS returns string: '<=';
+GREATER returns string: '>';
+GREATER_EQUALS returns string: '>=';
+NOT_EQUALS returns string: '!=';
+
+DIV returns string: '/';
+MUL returns string: '*';
+ADD returns string: '+';
+SUB returns string: '-';
+
+terminal FLOAT returns number: /\d+((\.\d+([Ee][+-]?\d+)?)|((\.\d+)?[Ee][+-]?\d+))/;
+terminal INTEGER returns number: /[0-9]+/;
+terminal BOOLEAN_T returns boolean: /true|false/;
+
+terminal COMMA: /,/;
+
+terminal DEDENT: ':synthetic-dedent:';
+terminal INDENT: ':synthetic-indent:';
+hidden terminal WS: /[ ]+/;
+
+terminal ID_NOT_STRICT: '"' /[^"\r\n.]+/ '"';
+terminal ID_STRICT: /[a-zA-Z]([a-zA-Z0-9_]|[#§%?\\'äüöß;])*/;
+
+terminal STRING: /"(\\.|[^"\\])*"|'(\\.|[^'\\])*'/;
+
+terminal NEWLINE: /[\r?\n]+/;
+terminal OPEN_BRACE: '{';
+terminal CLOSE_BRACE: '}';
 terminal OPEN_PAREN: '(';
 terminal CLOSE_PAREN: ')';
 terminal OPEN_BRACK: '[';
 terminal CLOSE_BRACK: ']';
-terminal OPEN_BRACE: '{';
-terminal CLOSE_BRACE: '}';
-
-hidden terminal WS: /\s+/;
-hidden terminal OPEN_COMMENT: '/*';
-hidden terminal CLOSE_COMMENT: '*/';
-hidden terminal COMMENT: /\/\/[^\n]*|\/\*.*?\*\//;

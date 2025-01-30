@@ -1,0 +1,41 @@
+{
+  "name": "uvlparser",
+  "scopeName": "source.uvlparser",
+  "fileTypes": [".uvl"],
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "name": "keyword.control.uvlparser",
+      "match": "\\b(Arithmetic|BOOLEAN|Integer|Real|String|Type|aggregate-function|alternative|as|avg|cardinality|ceil|constraint|constraints|feature-cardinality|features|floor|group-cardinality|imports|include|len|mandatory|namespace|optional|or|string-constraints|sum)\\b"
+    },
+    {
+      "name": "meta.attributes.uvlparser",
+      "begin": "\\{",
+      "end": "\\}",
+      "patterns": [
+        {
+          "name": "variable.parameter.attribute.uvlparser",
+          "match": "\\b[a-zA-Z][a-zA-Z0-9_]*\\b"
+        },
+        {
+          "name": "string.quoted.single.langium",
+          "begin": "'",
+          "end": "'",
+          "patterns": [
+            {
+              "include": "#string-character-escape"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "repository": {
+    "string-character-escape": {
+      "name": "constant.character.escape.uvlparser",
+      "match": "\\\\(x[0-9A-Fa-f]{2}|u[0-9A-Fa-f]{4}|u\\{[0-9A-Fa-f]+\\}|[0-2][0-7]{0,2}|3[0-6][0-7]?|37[0-7]?|[4-7][0-7]?|.|$)"
+    }
+  }
+}
