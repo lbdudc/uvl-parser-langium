@@ -185,7 +185,7 @@ terminal COMMA: /,/;
 
 terminal DEDENT: ':synthetic-dedent:';
 terminal INDENT: ':synthetic-indent:';
-hidden terminal WS: /[ ]+/;
+hidden terminal WS: /\s+/;
 
 terminal ID_NOT_STRICT: '"' /[^"\r\n.]+/ '"';
 terminal ID_STRICT: /[a-zA-Z]([a-zA-Z0-9_]|[#§%?\\'äüöß;])*/;
@@ -199,3 +199,5 @@ terminal OPEN_PAREN: '(';
 terminal CLOSE_PAREN: ')';
 terminal OPEN_BRACK: '[';
 terminal CLOSE_BRACK: ']';
+hidden terminal ML_COMMENT: /\/\*[\s\S]*?\*\//;
+hidden terminal SL_COMMENT: /\/\/[^\n\r]*/;
